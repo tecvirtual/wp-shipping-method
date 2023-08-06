@@ -29,7 +29,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                  */
                 public function __construct() {
                     $this->id                 = 'vexfedex';
-                    $this->method_title       = __( 'VexFedex Shipping', 'vexfedex' );
+                    $this->method_title       = __( 'EnviaTodo', 'vexfedex' );
                     $this->method_description = __( 'Custom Shipping Method for VexFedex', 'vexfedex' );
                     // Availability & Countries
                     $this->availability = 'including';
