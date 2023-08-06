@@ -29,11 +29,10 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                  */
                 public function __construct() {
                     $this->id                 = 'vexfedex';
-                    $this->method_title       = __( 'EnviaTodo', 'vexfedex' );
+                    $this->method_title       = __( 'VexFedex Shipping', 'vexfedex' );
                     $this->method_description = __( 'Custom Shipping Method for VexFedex', 'vexfedex' );
                     // Availability & Countries
                     $this->availability = 'including';
-                    $this->supports=['shipping-zones'];
                     $this->countries = array(
                         'US', // Unites States of America
                         'CA', // Canada
@@ -78,12 +77,6 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                             'description' => __( 'Title to be display on site', 'vexfedex' ),
                             'default' => __( 'VexFedex Shipping', 'vexfedex' )
                         ),
-                        'weight' => array(
-                            'title' => __( 'Weight (kg)', 'vexfedex' ),
-                            'type' => 'number',
-                            'description' => __( 'Maximum allowed weight', 'vexfedex' ),
-                            'default' => 100
-                        ),
                     );
                 }
                 /**
@@ -95,46 +88,103 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
                  */
                 public function calculate_shipping(  $package = array()  ) {
 
+
                     $weight = 0;
                     $cost = 0;
                     $country = $package["destination"]["country"];
                     foreach ( $package['contents'] as $item_id => $values )
                     {
                         $_product = $values['data'];
-                        $weight = $weight + $_product->get_weight() * $values['quantity'];
+                        $peso_volumetrico = (floatval($_product->get_length())*floatval($_product->get_width())*floatval($_product->get_height()))/5000;
+                        $weight = floatval($weight) + floatval($peso_volumetrico) * floatval($values['quantity']);
                     }
-                    $weight = wc_get_weight( $weight, 'kg' );
-                    if( $weight <= 10 ) {
-                        $cost = 0;
-                    } elseif( $weight <= 30 ) {
-                        $cost = 5;
-                    } elseif( $weight <= 50 ) {
-                        $cost = 10;
-                    } else {
-                        $cost = 20;
+
+                    $index = ceil($weight);
+                    if($index==0){
+                        $index = "1";
                     }
-                    $countryZones = array(
-                        'MX' => 0,
-                        'US' => 3,
-                        'GB' => 2,
-                        'CA' => 3,
-                        'ES' => 2,
-                        'DE' => 1,
-                        'IT' => 1
+                    if($index>=68){
+                        $index = 68;
+                    }
+                    
+                    $prices = array(
+                        "1" => "109",
+                        "2" => "121",
+                        "3" => "127",
+                        "4" => "133",
+                        "5" => "139",
+                        "6" => "145",
+                        "7" => "152",
+                        "8" => "158",
+                        "9" => "165",
+                        "10" => "171",
+                        "11" => "178",
+                        "12" => "184",
+                        "13" => "191",
+                        "14" => "197",
+                        "15" => "203",
+                        "16" => "210",
+                        "17" => "217",
+                        "18" => "223",
+                        "19" => "230",
+                        "20" => "236",
+                        "21" => "244",
+                        "22" => "251",
+                        "23" => "259",
+                        "24" => "266",
+                        "25" => "274",
+                        "26" => "281",
+                        "27" => "288",
+                        "28" => "296",
+                        "29" => "303",
+                        "30" => "310",
+                        "31" => "318",
+                        "32" => "327",
+                        "33" => "335",
+                        "34" => "343",
+                        "35" => "351",
+                        "36" => "359",
+                        "37" => "368",
+                        "38" => "376",
+                        "39" => "384",
+                        "40" => "392",
+                        "41" => "400",
+                        "42" => "409",
+                        "43" => "417",
+                        "44" => "425",
+                        "45" => "433",
+                        "46" => "441",
+                        "47" => "450",
+                        "48" => "458",
+                        "49" => "466",
+                        "50" => "474",
+                        "51" => "482",
+                        "52" => "491",
+                        "53" => "499",
+                        "54" => "507",
+                        "55" => "515",
+                        "56" => "524",
+                        "57" => "532",
+                        "58" => "540",
+                        "59" => "548",
+                        "60" => "556",
+                        "61" => "565",
+                        "62" => "573",
+                        "63" => "581",
+                        "64" => "589",
+                        "65" => "597",
+                        "66" => "606",
+                        "67" => "614",
+                        "68" => "622",
                     );
-                    $zonePrices = array(
-                        0 => 10,
-                        1 => 30,
-                        2 => 50,
-                        3 => 70
-                    );
-                    $zoneFromCountry = $countryZones[ $country ];
-                    $priceFromZone = $zonePrices[ $zoneFromCountry ];
-                    $cost += $priceFromZone;
+
+                    $costo_final = floatval($prices[$index]);
+
+                    
                     $rate = array(
                         'id' => $this->id,
                         'label' => $this->title,
-                        'cost' => $cost
+                        'cost' => $costo_final
                     );
                     $this->add_rate( $rate );
 
@@ -144,11 +194,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     }
     add_action( 'woocommerce_shipping_init', 'vexfedex_shipping_method' );
     function add_vexfedex_shipping_method( $methods ) {
-        $methods[] = 'Vex_Shipping_Method';
+        $methods['vexfedex'] = 'Vex_Shipping_Method';
         return $methods;
     }
     add_filter( 'woocommerce_shipping_methods', 'add_vexfedex_shipping_method' );
-    function vexfedex_validate_order( $posted )   {
+    /*function vexfedex_validate_order( $posted )   {
         $packages = WC()->shipping->get_packages();
         $chosen_methods = WC()->session->get( 'chosen_shipping_methods' );
 
@@ -184,5 +234,5 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
         }
     }
     add_action( 'woocommerce_review_order_before_cart_contents', 'vexfedex_validate_order' , 10 );
-    add_action( 'woocommerce_after_checkout_validation', 'vexfedex_validate_order' , 10 );
+    add_action( 'woocommerce_after_checkout_validation', 'vexfedex_validate_order' , 10 );*/
 }
